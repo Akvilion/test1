@@ -34,7 +34,7 @@ def load_user(user_id):
 class UserAdmin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30))
-    email = 
+    email = git 
     password = db.Column(db.String(255))
 
 
