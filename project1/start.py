@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, render_template, request
 from flask_admin import Admin
 from flask_admin.base import AdminIndexView
 from flask_login.utils import login_user
@@ -28,9 +28,6 @@ def load_user(user_id):
     return UserAdmin.query.get(user_id)
 
 
-
-
-
 class UserAdmin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30))
@@ -40,6 +37,7 @@ class UserAdmin(db.Model, UserMixin):
 class Authors(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
+    # email = db.Column(db.String(100), unique=True)
     name = db.Column(db.String(30))
     birthday = db.Column(db.DateTime, nullable=False)
     books = db.relationship('Books', cascade="all,delete", backref='author', lazy='dynamic')
@@ -59,16 +57,35 @@ class Books(db.Model):
         return self.title
 
 
-class MyModelView(ModelView):  # для закриття окремих моделей
-    def is_accessible(self):
-        return current_user.is_authenticated
 
 
-@app.route('/login')
+
+@app.route('/login', methods=['POST', 'GET'])
 def login():
+    name = request.form.get('name')
+    password = request.form.get('password')
+
+    # user = User.query.filter_by(email=email).first()
+    user = UserAdmin.query.filter_by(name=name).first()
+    cred = UserAdmin.query.filter_by(password=password).first()
+
+
+    if not user or not cred:
+        return render_template('login.html')
+    # return redirect(url_for('main.profile'))
+
+
     user = UserAdmin.query.get(1)
     login_user(user)
-    return 'Ligged in'
+
+
+    # return 'Logged in'
+    return redirect('/admin/')
+
+    # user = UserAdmin.query.get(1)
+    # login_user(user)
+    # return 'Logged in'
+    # return render_template('login.html')
 
 
 @app.route('/logout')
@@ -77,19 +94,23 @@ def logout():
     return 'You have been Logged out'
 
 
+class MyModelView(ModelView):  # для закриття окремих моделей
+    def is_accessible(self):
+        return current_user.is_authenticated
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
+
+
 class MyAdminIndexView(AdminIndexView):  # для закриття всієї адмінки
     def is_accessible(self):
         return current_user.is_authenticated
-    
-    # def inaccessible_callback(self, name, **kwargs):
-    #     return redirect(url_for('login'))
 
 
 admin = Admin(app, index_view=MyAdminIndexView())
 
-admin.add_view(ModelView(Authors, db.session))  # щоб заборонити показувати
-admin.add_view(ModelView(Books, db.session))  # MyModelView щоб заборонити показувати
-admin.add_view(ModelView(UserAdmin, db.session))
+admin.add_view(MyModelView(Authors, db.session))  # щоб заборонити показувати
+admin.add_view(MyModelView(Books, db.session))  # MyModelView щоб заборонити показувати
+admin.add_view(MyModelView(UserAdmin, db.session))
 
 
 if __name__ == '__main__':
