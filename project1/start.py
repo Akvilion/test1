@@ -1,4 +1,3 @@
-import logging
 from flask import Flask, redirect, url_for, render_template, request
 from flask_admin import Admin
 from flask_admin.base import AdminIndexView
@@ -18,9 +17,9 @@ filename = os.path.join(parent, "test1\mydb.db")
 app = Flask(__name__)
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/code/test1/mydb.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+filename
-app.config['SECRET_KEY'] = '123abc'
-app.config['SERVER_NAME'] = '127.0.0.1:5000'
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + filename
+app.config["SECRET_KEY"] = "123abc"
+app.config["SERVER_NAME"] = "127.0.0.1:5000"
 
 
 db = SQLAlchemy(app)
@@ -35,6 +34,7 @@ def load_user(user_id):
 class UserAdmin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30))
+    email = 
     password = db.Column(db.String(255))
 
 
@@ -44,7 +44,9 @@ class Authors(db.Model):
     # email = db.Column(db.String(100), unique=True)
     name = db.Column(db.String(30))
     birthday = db.Column(db.DateTime, nullable=False)
-    books = db.relationship('Books', cascade="all,delete", backref='author', lazy='dynamic')
+    books = db.relationship(
+        "Books", cascade="all,delete", backref="author", lazy="dynamic"
+    )
 
     def __repr__(self):
         return self.name
@@ -54,55 +56,42 @@ class Books(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(30))
-    author_id = db.Column(db.Integer, db.ForeignKey('authors.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey("authors.id"))
     pub_date = db.Column(db.DateTime, nullable=False)
 
     def __repr__(self):
         return self.title
 
 
-
-
-
-@app.route('/login', methods=['POST', 'GET'])
+@app.route("/login", methods=["POST", "GET"])
 def login():
-    name = request.form.get('name')
-    password = request.form.get('password')
+    name = request.form.get("name")
+    password = request.form.get("password")
 
-    # user = User.query.filter_by(email=email).first()
     user = UserAdmin.query.filter_by(name=name).first()
     cred = UserAdmin.query.filter_by(password=password).first()
 
-
     if not user or not cred:
-        return render_template('login.html')
-    # return redirect(url_for('main.profile'))
-
+        return render_template("login.html")
 
     user = UserAdmin.query.get(1)
     login_user(user)
 
-
-    # return 'Logged in'
-    return redirect('/admin/')
-
-    # user = UserAdmin.query.get(1)
-    # login_user(user)
-    # return 'Logged in'
-    # return render_template('login.html')
+    return redirect("/admin/")
 
 
-@app.route('/logout')
+@app.route("/logout")
 def logout():
     logout_user()
-    return 'You have been Logged out'
+    return "You have been Logged out"
 
 
 class MyModelView(ModelView):  # для закриття окремих моделей
     def is_accessible(self):
         return current_user.is_authenticated
+
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))
+        return redirect(url_for("login"))
 
 
 class MyAdminIndexView(AdminIndexView):  # для закриття всієї адмінки
@@ -112,14 +101,13 @@ class MyAdminIndexView(AdminIndexView):  # для закриття всієї а
 
 admin = Admin(app, index_view=MyAdminIndexView())
 with app.app_context():
-    admin.add_link(MenuLink(name='Logout', category='', url=url_for('logout')))
+    admin.add_link(MenuLink(name="Logout", category="", url=url_for("logout")))
 
 
-admin.add_view(MyModelView(Authors, db.session))  # щоб заборонити показувати
-admin.add_view(MyModelView(Books, db.session))  # MyModelView щоб заборонити показувати
+admin.add_view(MyModelView(Authors, db.session))
+admin.add_view(MyModelView(Books, db.session))
 admin.add_view(MyModelView(UserAdmin, db.session))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
-
