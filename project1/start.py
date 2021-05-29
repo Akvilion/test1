@@ -7,12 +7,12 @@ from flask_admin.contrib.sqla import ModelView
 from sqlalchemy.orm import backref
 import os
 from flask_login import UserMixin, LoginManager, current_user, login_user, logout_user
-from flask_admin.menu import MenuLink  # logout
+from flask_admin.menu import MenuLink
 
 
 path = os.getcwd()
-parent = os.path.dirname(path)
-filename = os.path.join(parent, "test1\mydb.db")
+filename = os.path.join(path, "mydb.db")
+
 
 app = Flask(__name__)
 
@@ -80,7 +80,7 @@ def logout():
     return "You have been Logged out"
 
 
-class MyModelView(ModelView):  # для закриття окремих моделей
+class MyModelView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated
 
@@ -88,7 +88,7 @@ class MyModelView(ModelView):  # для закриття окремих моде
         return redirect(url_for("login"))
 
 
-class MyAdminIndexView(AdminIndexView):  # для закриття всієї адмінки
+class MyAdminIndexView(AdminIndexView):
     def is_accessible(self):
         return current_user.is_authenticated
 
