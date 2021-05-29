@@ -33,15 +33,13 @@ def load_user(user_id):
 
 class UserAdmin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(30))
-    email = git 
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255))
 
 
 class Authors(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    # email = db.Column(db.String(100), unique=True)
     name = db.Column(db.String(30))
     birthday = db.Column(db.DateTime, nullable=False)
     books = db.relationship(
@@ -65,13 +63,11 @@ class Books(db.Model):
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    name = request.form.get("name")
+    email = request.form.get("email")
     password = request.form.get("password")
+    user = UserAdmin.query.filter_by(email=email).first()
 
-    user = UserAdmin.query.filter_by(name=name).first()
-    cred = UserAdmin.query.filter_by(password=password).first()
-
-    if not user or not cred:
+    if not user or not user.password==password:
         return render_template("login.html")
 
     user = UserAdmin.query.get(1)
