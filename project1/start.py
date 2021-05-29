@@ -1,6 +1,7 @@
 import logging
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_admin import Admin
+from flask_admin.base import AdminIndexView
 from flask_login.utils import login_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin.contrib.sqla import ModelView
@@ -58,7 +59,7 @@ class Books(db.Model):
         return self.title
 
 
-class MyModelView(ModelView):
+class MyModelView(ModelView):  # для закриття окремих моделей
     def is_accessible(self):
         return current_user.is_authenticated
 
@@ -76,11 +77,19 @@ def logout():
     return 'You have been Logged out'
 
 
-admin = Admin(app)
+class MyAdminIndexView(AdminIndexView):  # для закриття всієї адмінки
+    def is_accessible(self):
+        return current_user.is_authenticated
+    
+    # def inaccessible_callback(self, name, **kwargs):
+    #     return redirect(url_for('login'))
 
-admin.add_view(MyModelView(Authors, db.session))  # щоб заборонити показувати
-admin.add_view(MyModelView(Books, db.session))  # MyModelView щоб заборонити показувати
-admin.add_view(MyModelView(UserAdmin, db.session))
+
+admin = Admin(app, index_view=MyAdminIndexView())
+
+admin.add_view(ModelView(Authors, db.session))  # щоб заборонити показувати
+admin.add_view(ModelView(Books, db.session))  # MyModelView щоб заборонити показувати
+admin.add_view(ModelView(UserAdmin, db.session))
 
 
 if __name__ == '__main__':
