@@ -8,6 +8,7 @@ from flask_admin.contrib.sqla import ModelView
 from sqlalchemy.orm import backref
 import os
 from flask_login import UserMixin, LoginManager, current_user, login_user, logout_user
+from flask_admin.menu import MenuLink  # logout
 
 
 path = os.getcwd()
@@ -15,9 +16,12 @@ parent = os.path.dirname(path)
 filename = os.path.join(parent, "test1\mydb.db")
 
 app = Flask(__name__)
+
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/code/test1/mydb.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+filename
-app.config['SECRET_KEY']= '123abc'
+app.config['SECRET_KEY'] = '123abc'
+app.config['SERVER_NAME'] = '127.0.0.1:5000'
+
 
 db = SQLAlchemy(app)
 login = LoginManager(app)
@@ -107,6 +111,9 @@ class MyAdminIndexView(AdminIndexView):  # для закриття всієї а
 
 
 admin = Admin(app, index_view=MyAdminIndexView())
+with app.app_context():
+    admin.add_link(MenuLink(name='Logout', category='', url=url_for('logout')))
+
 
 admin.add_view(MyModelView(Authors, db.session))  # щоб заборонити показувати
 admin.add_view(MyModelView(Books, db.session))  # MyModelView щоб заборонити показувати
