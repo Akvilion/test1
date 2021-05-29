@@ -16,11 +16,9 @@ filename = os.path.join(parent, "test1\mydb.db")
 
 app = Flask(__name__)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/code/test1/mydb.db'
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + filename
 app.config["SECRET_KEY"] = "123abc"
 app.config["SERVER_NAME"] = "127.0.0.1:5000"
-
 
 db = SQLAlchemy(app)
 login = LoginManager(app)
